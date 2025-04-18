@@ -1,3 +1,4 @@
+// file: lib/screens/home_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/user_data.dart';
@@ -11,58 +12,97 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _namaController = TextEditingController();
-  final _nimController = TextEditingController();
   DateTime? _tanggalLahir;
+
+  String formatTanggal(DateTime date) {
+    return "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Halaman Awal")),
-      body: Padding(
-        padding: EdgeInsets.all(20),
+      appBar: AppBar(title: Text("Ramalan Zodiak")),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Gambar dan identitas pembuat
             CircleAvatar(
               radius: 60,
-              backgroundImage: AssetImage('assets/foto.jpg'), // tambahkan foto ke assets
+              backgroundImage: AssetImage('assets/saya.jpg'),
             ),
             SizedBox(height: 16),
-            Text("Nama: John Doe", style: TextStyle(fontSize: 18)),
-            Text("NIM: 1234567890", style: TextStyle(fontSize: 18)),
-            SizedBox(height: 16),
-            TextField(controller: _namaController, decoration: InputDecoration(labelText: "Nama")),
-            TextField(controller: _nimController, decoration: InputDecoration(labelText: "NIM")),
-            SizedBox(height: 16),
+            Text(
+              "Nama: Gaby Febrianti Sirait",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            Text(
+              "NIM: 2310501073",
+              style: TextStyle(fontSize: 16),
+            ),
+
+            Divider(height: 40),
+
+            // Inputan Nama
+            TextField(
+              controller: _namaController,
+              decoration: InputDecoration(
+                labelText: "Masukkan Nama",
+                border: OutlineInputBorder(),
+              ),
+            ),
+            SizedBox(height: 20),
+
+            // Tombol pilih tanggal lahir
             ElevatedButton(
-              child: Text("Pilih Tanggal Lahir"),
               onPressed: () async {
-                final picked = await showDatePicker(
+                final pickedDate = await showDatePicker(
                   context: context,
-                  initialDate: DateTime(2000),
-                  firstDate: DateTime(1970),
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(1900),
                   lastDate: DateTime.now(),
                 );
-                if (picked != null) {
-                  setState(() {
-                    _tanggalLahir = picked;
-                  });
-                }
+                setState(() {
+                  _tanggalLahir = pickedDate;
+                });
               },
+              child: Text("Pilih Tanggal Lahir"),
             ),
-            SizedBox(height: 16),
+
+            // Tampilkan tanggal lahir jika sudah dipilih
+            if (_tanggalLahir != null) ...[
+              SizedBox(height: 10),
+              Text(
+                "📅 Tanggal Lahir: ${formatTanggal(_tanggalLahir!)}",
+                style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+              ),
+            ],
+
+            SizedBox(height: 30),
+
+            // Tombol Ramalkan
             ElevatedButton(
-              child: Text("Ramal"),
               onPressed: () {
                 if (_tanggalLahir != null) {
                   final user = UserData(
                     nama: _namaController.text,
-                    nim: _nimController.text,
+                    nim: "", // nim tidak digunakan
                     tanggalLahir: _tanggalLahir!,
                   );
-                  Provider.of<ZodiakProvider>(context, listen: false).setUser(user);
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => ResultScreen()));
+                  Provider.of<ZodiakProvider>(context, listen: false)
+                      .setUser(user);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ResultScreen()),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Silakan pilih tanggal lahir!")),
+                  );
                 }
               },
+              child: Text("Ramalkan"),
             ),
           ],
         ),
